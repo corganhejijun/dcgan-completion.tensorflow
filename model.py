@@ -347,7 +347,7 @@ Initializing a new one.
 
                 oldFileName = batch_files[0]
                 oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
-                if (!os.path.isdir(config.outDir + "/completed/" + oldFileName))
+                if (not os.path.isdir(config.outDir + "/completed/" + oldFileName)):
                     os.mkdir(config.outDir + "/completed/" + oldFileName)
 
                 if i % config.outInterval == 0:
