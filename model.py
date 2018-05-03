@@ -345,6 +345,11 @@ Initializing a new one.
                         f.write('{} {} '.format(i, loss[img]).encode())
                         np.savetxt(f, zhats[img:img+1])
 
+                oldFileName = batch_files[0]
+                oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
+                if (!os.path.isdir(config.outDir + "/completed/" + oldFileName))
+                    os.mkdir(config.outDir + "/completed/" + oldFileName)
+
                 if i % config.outInterval == 0:
                     print(i, np.mean(loss[0:batchSz]))
                     imgName = os.path.join(config.outDir,
@@ -360,10 +365,8 @@ Initializing a new one.
 
                     inv_masked_hat_images = np.multiply(G_imgs, 1.0-mask)
                     completed = masked_images + inv_masked_hat_images
-                    oldFileName = batch_files[0]
-                    oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
                     print "File: {},and {} after".format(oldFileName, batchSz)
-                    imgName = os.path.join(config.outDir, 'completed/{}_{}_{:04d}.png'.format(oldFileName, batchSz, i))
+                    imgName = os.path.join(config.outDir, 'completed', oldFileName, '{}_{}_{:04d}.png'.format(oldFileName, batchSz, i))
                     save_images(completed[:batchSz,:,:,:], [nRows,nCols], imgName)
 
                 if config.approach == 'adam':
