@@ -309,13 +309,19 @@ Initializing a new one.
             m = 0
             v = 0
 
+            oldFileName = batch_files[0]
+            oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
+            if (!os.path.isdir(config.outDir + "/completed/" + oldFileName))
+                os.mkdir(config.outDir + "/completed/" + oldFileName)
+
             nRows = np.ceil(batchSz/8)
             nCols = min(8, batchSz)
             save_images(batch_images[:batchSz,:,:,:], [nRows,nCols],
                         os.path.join(config.outDir, 'before.png'))
             masked_images = np.multiply(batch_images, mask)
             save_images(masked_images[:batchSz,:,:,:], [nRows,nCols],
-                        os.path.join(config.outDir, 'masked.png'))
+                        os.path.join(config.outDir, 'completed', oldFileName + '__masked.png'))
+
             if lowres_mask.any():
                 lowres_images = np.reshape(batch_images, [self.batch_size, self.lowres_size, self.lowres,
                     self.lowres_size, self.lowres, self.c_dim]).mean(4).mean(2)
@@ -344,11 +350,6 @@ Initializing a new one.
                     with open(os.path.join(config.outDir, 'logs/hats_{:02d}.log'.format(img)), 'ab') as f:
                         f.write('{} {} '.format(i, loss[img]).encode())
                         np.savetxt(f, zhats[img:img+1])
-
-                oldFileName = batch_files[0]
-                oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
-                if (!os.path.isdir(config.outDir + "/completed/" + oldFileName))
-                    os.mkdir(config.outDir + "/completed/" + oldFileName)
 
                 if i % config.outInterval == 0:
                     print(i, np.mean(loss[0:batchSz]))
