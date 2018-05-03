@@ -311,7 +311,7 @@ Initializing a new one.
 
             oldFileName = batch_files[0]
             oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
-            if (!os.path.isdir(config.outDir + "/completed/" + oldFileName))
+            if (not os.path.isdir(config.outDir + "/completed/" + oldFileName)):
                 os.mkdir(config.outDir + "/completed/" + oldFileName)
 
             nRows = np.ceil(batchSz/8)
@@ -319,8 +319,7 @@ Initializing a new one.
             save_images(batch_images[:batchSz,:,:,:], [nRows,nCols],
                         os.path.join(config.outDir, 'before.png'))
             masked_images = np.multiply(batch_images, mask)
-            save_images(masked_images[:batchSz,:,:,:], [nRows,nCols],
-                        os.path.join(config.outDir, 'completed', oldFileName + '__masked.png'))
+            save_images(masked_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName + '__masked.png'))
 
             if lowres_mask.any():
                 lowres_images = np.reshape(batch_images, [self.batch_size, self.lowres_size, self.lowres,
