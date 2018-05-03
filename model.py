@@ -360,8 +360,10 @@ Initializing a new one.
 
                     inv_masked_hat_images = np.multiply(G_imgs, 1.0-mask)
                     completed = masked_images + inv_masked_hat_images
-                    imgName = os.path.join(config.outDir,
-                                           'completed/{:04d}.png'.format(i))
+                    oldFileName = batch_files[0]
+                    oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
+                    print "File: {},and {} after".format(oldFileName, batchSz)
+                    imgName = os.path.join(config.outDir, 'completed/{}_{}_{:04d}.png'.format(oldFileName, batchSz, i))
                     save_images(completed[:batchSz,:,:,:], [nRows,nCols], imgName)
 
                 if config.approach == 'adam':
