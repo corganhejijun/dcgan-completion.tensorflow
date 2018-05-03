@@ -288,6 +288,10 @@ Initializing a new one.
         elif config.maskType == 'lowres':
             lowres_mask = np.ones(self.lowres_shape)
             mask = np.zeros(self.image_shape)
+        elif config.maskType == 'fit':
+            if (self.batch_size != 1):
+                print "image batch is not 1"
+                return
         else:
             assert(False)
 
@@ -316,8 +320,13 @@ Initializing a new one.
 
             nRows = np.ceil(batchSz/8)
             nCols = min(8, batchSz)
-            save_images(batch_images[:batchSz,:,:,:], [nRows,nCols],
-                        os.path.join(config.outDir, 'before.png'))
+            save_images(batch_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__before.png'))
+            if (config.maskType == 'fit'):
+                print self.image_shape
+                mask = np.ones(self.image_shape)
+                imageData = batch_images[:batchSz].astype(np.int8)
+                print imageData
+                return;
             masked_images = np.multiply(batch_images, mask)
             save_images(masked_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__masked.png'))
 
