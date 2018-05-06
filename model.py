@@ -325,6 +325,11 @@ Initializing a new one.
                 print self.image_shape
                 mask = np.ones(self.image_shape)
                 imageData = batch_images[:batchSz].astype(np.int8)
+                for pixel_x in range(0, imageData.shape[0]):
+                    for pixel_y in range(0, imageData.shape[1]):
+                        if (imageData[pixel_x][pixel_y] == [0, 0, 0]):
+                            mask[pixel_x][pixel_y] = [0, 0, 0]
+                print mask
                 print imageData
                 return;
             masked_images = np.multiply(batch_images, mask)
