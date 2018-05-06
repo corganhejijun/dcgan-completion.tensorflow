@@ -25,9 +25,9 @@ def dataset_files(root):
 
 
 class DCGAN(object):
-    def __init__(self, sess, image_size=64, is_crop=False,
-                 batch_size=64, sample_size=64, lowres=8,
-                 z_dim=100, gf_dim=64, df_dim=64,
+    def __init__(self, sess, image_size=128, is_crop=False,
+                 batch_size=64, sample_size=128, lowres=8,
+                 z_dim=100, gf_dim=128, df_dim=128,
                  gfc_dim=1024, dfc_dim=1024, c_dim=3,
                  checkpoint_dir=None, lam=0.1):
         """
@@ -322,16 +322,14 @@ Initializing a new one.
             nCols = min(8, batchSz)
             save_images(batch_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__before.png'))
             if (config.maskType == 'fit'):
-                print self.image_shape
-                mask = np.ones(self.image_shape)
-                imageData = batch_images[:batchSz].astype(np.int8)
+                imageData = batch_images[0].astype(np.int8)
+                mask = np.ones(imageData.shape)
                 for pixel_x in range(0, imageData.shape[0]):
                     for pixel_y in range(0, imageData.shape[1]):
-                        if (imageData[pixel_x][pixel_y] == [0, 0, 0]):
+                        if (imageData[pixel_x][pixel_y] == np.zeros((1,3))).any():
                             mask[pixel_x][pixel_y] = [0, 0, 0]
-                print mask
-                print imageData
-                return;
+            print batch_images.shape
+            print mask.shape
             masked_images = np.multiply(batch_images, mask)
             save_images(masked_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__masked.png'))
 
