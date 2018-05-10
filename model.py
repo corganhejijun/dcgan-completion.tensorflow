@@ -300,6 +300,9 @@ Initializing a new one.
             u = min((idx+1)*self.batch_size, nImgs)
             batchSz = u-l
             batch_files = config.imgs[l:u]
+            if (config.maskType == 'fit'):
+                if (batch_files[0].endswith(".npy")):
+                    continue
             batch = [get_image(batch_file, self.image_size, is_crop=self.is_crop)
                      for batch_file in batch_files]
             batch_images = np.array(batch).astype(np.float32)
@@ -313,7 +316,8 @@ Initializing a new one.
             m = 0
             v = 0
 
-            oldFileName = batch_files[0]
+            maskName = oldFileName = batch_files[0]
+            maskName = oldFileName[:oldFileName.rfind("_")] + "_mask.npy"
             oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
             if (not os.path.isdir(config.outDir + "/completed/" + oldFileName)):
                 os.mkdir(config.outDir + "/completed/" + oldFileName)
@@ -323,11 +327,9 @@ Initializing a new one.
             save_images(batch_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__before.png'))
             if (config.maskType == 'fit'):
                 imageData = batch_images[0].astype(np.int8)
-                mask = np.ones(imageData.shape)
-                for pixel_x in range(0, imageData.shape[0]):
-                    for pixel_y in range(0, imageData.shape[1]):
-                        if (imageData[pixel_x][pixel_y] == np.zeros((1,3))).any():
-                            mask[pixel_x][pixel_y] = [0, 0, 0]
+                singleMask = np.load(maskName)
+                mask = np.zeros(imageData.shape)
+                mask[:,:,0] = mask[:,:,1] = mask[:,:,2] = singleMask
             print batch_images.shape
             print mask.shape
             masked_images = np.multiply(batch_images, mask)
