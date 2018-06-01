@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*
 import cv2
 import os
 import dlib
@@ -40,10 +41,10 @@ def transOverMargin(transIdx, width, height):
             xMin = transIdx[i][0]
         if (transIdx[i][1] < yMin):
             yMin = transIdx[i][1]
-        if (transIdx[i][2] > xMax):
-            xMax = transIdx[i][2]
-        if (transIdxi[i][3] > yMax):
-            yMax = transIdx[i][3]
+        if (transIdx[i][0] > xMax):
+            xMax = transIdx[i][0]
+        if (transIdx[i][1] > yMax):
+            yMax = transIdx[i][1]
     xOverRight = math.ceil(xMax - width)
     yOverBottom = math.ceil(yMax - height)
     xOverLeft = -math.floor(xMin)
@@ -64,37 +65,39 @@ def faceGen(file):
     feature = det[0]
 
     landmarks = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-    eigenPart = landmarks(eigenImg, eigenDetector)
-    part = landmarks(fileImg, detector)
+    eigenPart = landmarks(eigenImg, eigenFeature)
+    part = landmarks(fileImg, feature)
     if (eigenPart.num_parts != part.num_parts):
         print "landmarks part number not equal"
         return
 
     eigenXmin, eigenXmax, eigenYmin, eigenYmax = getBound(eigenImg, eigenPart)
-    xmin, xmax, ymin, ymax = getBound(fileImg, part)
+    xMin, xMax, yMin, yMax = getBound(fileImg, part)
 
     eigenCtrlPts = setLandmark(eigenPart, eigenXmin, eigenYmin)
     ctrlPts = setLandmark(part, xMin, yMin)
 
     # moving from ctrlPts to eigenCtrlPts
-    solver = MSLQ.MovingLSQ(ctrlPts, eigenCtrlPts)
+    solver = MLSQ.MovingLSQ(ctrlPts, eigenCtrlPts)
     cropWidth = xMax - xMin
     cropHeight = yMax - yMin
     imgIdx = numpy.zeros((cropWidth * cropHeight, 2))
     for i in range(cropHeight):
         for j in range(cropWidth):
             imgIdx[i * (cropWidth) + j] = [j, i]
+    print "begin solver"
     transImgIdx = solver.Run_Rigid(imgIdx)
-    transImgMap = transIdx.reshape((cropHeight, cropWidth, 2))
+    print "solve finished"
+    transImgMap = transImgIdx.reshape((cropHeight, cropWidth, 2))
     leftMargin, rightMargin, topMargin, bottomMargin = transOverMargin(transImgIdx, cropWidth, cropHeight)
 
-    transImg = numpy.zeros(cropHeight + int(topMargin) + int(bottomMargin),
-                            cropWidth + int(leftMargin) + int(rightMargin), 3)
-    mask = numpy.zeros(transImg.shape[0], transImg.shape[1])
+    transImg = numpy.zeros((cropHeight + int(topMargin) + int(bottomMargin),
+                            cropWidth + int(leftMargin) + int(rightMargin), 3))
+    mask = numpy.zeros((transImg.shape[0], transImg.shape[1]))
     for i in range(cropHeight):
         for j in range(cropWidth):
-            x = int(math.floor(transImgMap[i][j][0])) + leftMargin
-            y = int(math.floor(transImgMap[i][j][1])) + topMargin
+            x = int(math.floor(transImgMap[i][j][0]) + leftMargin)
+            y = int(math.floor(transImgMap[i][j][1]) + topMargin)
             if (x < 0 or y < 0):
                 print "i = {}, j = {}, x = {}, y = {}".format(i, j, x, y)
                 break
