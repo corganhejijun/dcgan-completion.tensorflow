@@ -25,7 +25,7 @@ def dataset_files(root):
 
 
 class DCGAN(object):
-    def __init__(self, sess, image_size=64, is_crop=False,
+    def __init__(self, sess, image_size=128, is_crop=False,
                  batch_size=64, sample_size=64, lowres=8,
                  z_dim=100, gf_dim=64, df_dim=64,
                  gfc_dim=1024, dfc_dim=1024, c_dim=3,
@@ -300,6 +300,9 @@ Initializing a new one.
             u = min((idx+1)*self.batch_size, nImgs)
             batchSz = u-l
             batch_files = config.imgs[l:u]
+            if (config.maskType == 'fit'):
+                if (batch_files[0].endswith(".npy")):
+                    continue
             batch = [get_image(batch_file, self.image_size, is_crop=self.is_crop)
                      for batch_file in batch_files]
             batch_images = np.array(batch).astype(np.float32)
@@ -313,7 +316,8 @@ Initializing a new one.
             m = 0
             v = 0
 
-            oldFileName = batch_files[0]
+            maskName = oldFileName = batch_files[0]
+            maskName = oldFileName[:oldFileName.rfind("_")] + "_mask.npy"
             oldFileName = oldFileName[oldFileName.rfind("/")+1:-4]
             if (not os.path.isdir(config.outDir + "/completed/" + oldFileName)):
                 os.mkdir(config.outDir + "/completed/" + oldFileName)
@@ -322,16 +326,12 @@ Initializing a new one.
             nCols = min(8, batchSz)
             save_images(batch_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__before.png'))
             if (config.maskType == 'fit'):
-                print self.image_shape
-                mask = np.ones(self.image_shape)
-                imageData = batch_images[:batchSz].astype(np.int8)
-                for pixel_x in range(0, imageData.shape[0]):
-                    for pixel_y in range(0, imageData.shape[1]):
-                        if (imageData[pixel_x][pixel_y] == [0, 0, 0]):
-                            mask[pixel_x][pixel_y] = [0, 0, 0]
-                print mask
-                print imageData
-                return;
+                imageData = batch_images[0].astype(np.int8)
+                singleMask = np.load(maskName)
+                mask = np.zeros(imageData.shape)
+                mask[:,:,0] = mask[:,:,1] = mask[:,:,2] = singleMask
+            print batch_images.shape
+            print mask.shape
             masked_images = np.multiply(batch_images, mask)
             save_images(masked_images[:batchSz,:,:,:], [nRows,nCols], os.path.join(config.outDir, 'completed', oldFileName, oldFileName + '__masked.png'))
 
