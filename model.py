@@ -128,7 +128,7 @@ class DCGAN(object):
         self.weightedErrL1 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1, 1), 1))
         self.weightedErrL2 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_2, 1), 1))
         self.weightedErrL3 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_3, 1), 1))
-        self.pixel_loss = = L1_1_W * self.weightedErrL1 + L1_2_W * self.weightedErrL2 + L1_3_W * self.weightedErrL3
+        self.pixel_loss = L1_1_W * self.weightedErrL1 + L1_2_W * self.weightedErrL2 + L1_3_W * self.weightedErrL3
         self.g_loss = pixel_loss + ALPHA_ADVER * self.g_loss_adver + TV_WEIGHT * self.tv_loss
                         #tf.reduce_mean(
             # tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
