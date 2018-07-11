@@ -17,6 +17,11 @@ from ops import *
 from utils import *
 
 SUPPORTED_EXTENSIONS = ["png", "jpg", "jpeg"]
+L1_1_W = 1#0.5
+L1_2_W = 1
+L1_3_W = 1.5
+ALPHA_ADVER = 2e1
+TV_WEIGHT = 1e-3
 
 def dataset_files(root):
     """Returns a list of all image files in the given directory"""
@@ -26,7 +31,7 @@ def dataset_files(root):
 
 class DCGAN(object):
     def __init__(self, sess, image_size=128, is_crop=False,
-                 batch_size=64, sample_size=64, lowres=8,
+                 batch_size=64, sample_size=64, lowres=8, output_size=128,
                  z_dim=100, gf_dim=64, df_dim=64,
                  gfc_dim=1024, dfc_dim=1024, c_dim=3,
                  checkpoint_dir=None, lam=0.1):
@@ -52,6 +57,7 @@ class DCGAN(object):
         self.image_size = image_size
         self.sample_size = sample_size
         self.image_shape = [image_size, image_size, c_dim]
+        self.output_size = output_size
 
         self.lowres = lowres
         self.lowres_size = image_size // lowres
@@ -110,9 +116,23 @@ class DCGAN(object):
         self.d_loss_fake = tf.reduce_mean(
             tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
                                                     labels=tf.zeros_like(self.D_)))
-        self.g_loss = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
-                                                    labels=tf.ones_like(self.D_)))
+        self.g_loss_adver = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_) * 0.9))
+        self.tv_loss = tf.reduce_mean(total_variation(self.G))
+        self.labels = tf.placeholder(tf.float32, [self.batch_size] + [self.output_size, self.output_size, 3], name='label_images')
+        self.g_labels = self.labels #tf.reduce_mean(self.labels, 3, keep_dims=True)
+        self.g32_labels = tf.image.resize_bilinear(self.g_labels, [32, 32])
+        self.g64_labels = tf.image.resize_bilinear(self.g_labels, [64, 64])
+        errL1 = tf.abs(self.G - self.g_labels) #* mask128
+        errL1_2 = tf.abs(self.G2 - self.g64_labels) #* mask64
+        errL1_3 = tf.abs(self.G3 - self.g32_labels) #* mask32
+        self.weightedErrL1 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1, 1), 1))
+        self.weightedErrL2 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_2, 1), 1))
+        self.weightedErrL3 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_3, 1), 1))
+        self.pixel_loss = = L1_1_W * self.weightedErrL1 + L1_2_W * self.weightedErrL2 + L1_3_W * self.weightedErrL3
+        self.g_loss = pixel_loss + ALPHA_ADVER * self.g_loss_adver + TV_WEIGHT * self.tv_loss
+                        #tf.reduce_mean(
+            # tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
+                                                    #labels=tf.ones_like(self.D_)))
 
         self.d_loss_real_sum = tf.summary.scalar("d_loss_real", self.d_loss_real)
         self.d_loss_fake_sum = tf.summary.scalar("d_loss_fake", self.d_loss_fake)
