@@ -123,14 +123,14 @@ class DCGAN(object):
         self.g_labels = self.labels #tf.reduce_mean(self.labels, 3, keep_dims=True)
         self.g32_labels = tf.image.resize_bilinear(self.g_labels, [32, 32])
         self.g64_labels = tf.image.resize_bilinear(self.g_labels, [64, 64])
-        errL1 = tf.abs(self.G - self.g_labels) #* mask128
-        errL1_2 = tf.abs(self.G2 - self.g64_labels) #* mask64
-        errL1_3 = tf.abs(self.G3 - self.g32_labels) #* mask32
-        self.weightedErrL1 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1, 1), 1))
-        self.weightedErrL2 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_2, 1), 1))
-        self.weightedErrL3 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_3, 1), 1))
-        self.pixel_loss = L1_1_W * self.weightedErrL1 + L1_2_W * self.weightedErrL2 + L1_3_W * self.weightedErrL3
-        self.g_loss = pixel_loss + ALPHA_ADVER * self.g_loss_adver + TV_WEIGHT * self.tv_loss
+        # errL1 = tf.abs(self.G - self.g_labels) #* mask128
+        # errL1_2 = tf.abs(self.G2 - self.g64_labels) #* mask64
+        # errL1_3 = tf.abs(self.G3 - self.g32_labels) #* mask32
+        # self.weightedErrL1 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1, 1), 1))
+        # self.weightedErrL2 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_2, 1), 1))
+        # self.weightedErrL3 = tf.reduce_mean(tf.reduce_sum(tf.reduce_sum(errL1_3, 1), 1))
+        # self.pixel_loss = L1_1_W * self.weightedErrL1 + L1_2_W * self.weightedErrL2 + L1_3_W * self.weightedErrL3
+        self.g_loss = ALPHA_ADVER * self.g_loss_adver + TV_WEIGHT * self.tv_loss
                         #tf.reduce_mean(
             # tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
                                                     #labels=tf.ones_like(self.D_)))
