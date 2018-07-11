@@ -116,7 +116,8 @@ class DCGAN(object):
         self.d_loss_fake = tf.reduce_mean(
             tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_,
                                                     labels=tf.zeros_like(self.D_)))
-        self.g_loss_adver = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_) * 0.9))
+        self.g_loss_adver = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.D_logits_, 
+                                                                                    labels=tf.ones_like(self.D_) * 0.9))
         self.tv_loss = tf.reduce_mean(total_variation(self.G))
         self.labels = tf.placeholder(tf.float32, [self.batch_size] + [self.output_size, self.output_size, 3], name='label_images')
         self.g_labels = self.labels #tf.reduce_mean(self.labels, 3, keep_dims=True)
